@@ -1,0 +1,374 @@
+     1                                  ;/*=====================================================================================================================================
+     2                                  ;Author: Justin Nguyen
+     3                                  ;Email: justindnguyen03@csu.fullerton.edu
+     4                                  ;Institution: California State University, Fullerton
+     5                                  ;Course: CPSC 240-01-02, MW 1200PM-0150PM, CS104
+     6                                  ;Start Date: 4 September, 2022
+     7                                  ;
+     8                                  ;Program Name: Right Triangles
+     9                                  ;Programming Languages: C and X86
+    10                                  ;Date of Last Update: 17 September, 2022
+    11                                  ;Date of Reorganization of Comments: 17 September, 2022
+    12                                  ;Files in this Program: pythagoras.c, triangle.asm, isfloat.asm, run.sh, gdb.sh
+    13                                  ;Status: Finished. The program was tested with no errors on WSL Ubuntu 20.04.4 LTS. 
+    14                                  ;
+    15                                  ;Program Description: This program asks the user to input the lengths of two sides of a right triangle and will compute the hypotenuse and area.
+    16                                  ;The program will also validate inputs to exclude zeroes and negative numbers. 
+    17                                  ;
+    18                                  ;Purpose of this File: Assembly file that defines the right_triangle function used in the driver pythagoras.c.
+    19                                  ;
+    20                                  ;File name: triangle.asm
+    21                                  ;Language: X86 with Intel syntax.
+    22                                  ;Assemble: nasm -f elf64 -l triangle.lis -o triangle.o triangle.asm
+    23                                  ;Link: gcc -m64 -no-pie -o main.out pythagoras.o triangle.o isfloat.o -std=c17 
+    24                                  ;Run: sh run.sh
+    25                                  ;
+    26                                  ;Copyright (C) 2022 Justin Nguyen
+    27                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+    28                                  ;version 3 as published by the Free Software Foundation.
+    29                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+    30                                  ;Warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+    31                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.
+    32                                  ;======================================================================================================================================*/
+    33                                  
+    34                                  ;Begin code area
+    35                                  extern printf
+    36                                  extern scanf
+    37                                  extern atof
+    38                                  extern fgets
+    39                                  extern stdin
+    40                                  extern strlen
+    41                                  extern isfloat
+    42                                  
+    43                                  global right_triangle
+    44                                  
+    45                                  segment .data
+    46                                      ;defining variables
+    47 00000000 506C6561736520656E-         input_name_prompt db "Please enter your last name: ", 0
+    47 00000009 74657220796F757220-
+    47 00000012 6C617374206E616D65-
+    47 0000001B 3A2000             
+    48 0000001E 506C6561736520656E-         input_title_prompt db "Please enter your title (Mr, Ms, Nurse, Engineer, etc): ", 0
+    48 00000027 74657220796F757220-
+    48 00000030 7469746C6520284D72-
+    48 00000039 2C204D732C204E7572-
+    48 00000042 73652C20456E67696E-
+    48 0000004B 6565722C2065746329-
+    48 00000054 3A2000             
+    49 00000057 506C6561736520656E-         input_triangle_sides db "Please enter the sides of your triangle separated by ws: ", 10, 0
+    49 00000060 746572207468652073-
+    49 00000069 69646573206F662079-
+    49 00000072 6F757220747269616E-
+    49 0000007B 676C65207365706172-
+    49 00000084 617465642062792077-
+    49 0000008D 733A200A00         
+    50 00000092 546865206C656E6774-         output_hypotenuse db "The length of the hypotenuse is %lf units.", 10, 0
+    50 0000009B 68206F662074686520-
+    50 000000A4 6879706F74656E7573-
+    50 000000AD 6520697320256C6620-
+    50 000000B6 756E6974732E0A00   
+    51 000000BE 546865206172656120-         output_area db "The area of the triangle is %lf units squared.", 10, 10, 0
+    51 000000C7 6F6620746865207472-
+    51 000000D0 69616E676C65206973-
+    51 000000D9 20256C6620756E6974-
+    51 000000E2 732073717561726564-
+    51 000000EB 2E0A0A00           
+    52 000000EF 506C6561736520656E-         output_goodbye db "Please enjoy your triangles %s %s.", 10, 0
+    52 000000F8 6A6F7920796F757220-
+    52 00000101 747269616E676C6573-
+    52 0000010A 2025732025732E0A00 
+    53 00000113 506C65617365207479-         error_message1 db "Please type a float.", 10, 0
+    53 0000011C 7065206120666C6F61-
+    53 00000125 742E0A00           
+    54 00000129 506C65617365207479-         error_message2 db "Please type a number greater than 0.", 10, 0
+    54 00000132 70652061206E756D62-
+    54 0000013B 657220677265617465-
+    54 00000144 72207468616E20302E-
+    54 0000014D 0A00               
+    55 0000014F 0A5371756172696E67-         squaring db 10, "Squaring...", 10, "%lf", 10, "%lf", 10, 10, 0
+    55 00000158 2E2E2E0A256C660A25-
+    55 00000161 6C660A0A00         
+    56 00000166 416464696E672E2E2E-         adding db "Adding...", 10, "%lf", 10, 10, 0
+    56 0000016F 0A256C660A0A00     
+    57 00000176 53717561726520726F-         squarerooting db "Square rooting...", 10, "%lf", 10, 10, 0
+    57 0000017F 6F74696E672E2E2E0A-
+    57 00000188 256C660A0A00       
+    58 0000018E 257300                      string_format db "%s", 0
+    59 00000191 256C66256C6600              double_float_format db "%lf%lf", 0
+    60 00000198 2573257300                  double_string_format db "%s%s", 0
+    61 0000019D 256C6600                    one_float_format db "%lf", 0
+    62 000001A1 0000000000000000            zero dq 0
+    63                                  
+    64                                  segment .bss
+    65                                      ;reserved for uninitialized data
+    66 00000000 <res 00000100>              lastname: resb 256
+    67 00000100 <res 00000100>              title: resb 256
+    68 00000200 <res 00000100>              buffer: resb 256
+    69                                  
+    70                                  segment .text
+    71                                      ;reserved for executing instructions
+    72                                  
+    73                                  right_triangle:
+    74                                      ;back up gpr registers
+    75 00000000 55                          push rbp
+    76 00000001 4889E5                      mov rbp, rsp
+    77 00000004 57                          push rdi                
+    78 00000005 56                          push rsi
+    79 00000006 52                          push rdx
+    80 00000007 51                          push rcx
+    81 00000008 4150                        push r8
+    82 0000000A 4151                        push r9
+    83 0000000C 4152                        push r10
+    84 0000000E 4153                        push r11
+    85 00000010 4154                        push r12
+    86 00000012 4155                        push r13
+    87 00000014 4156                        push r14
+    88 00000016 4157                        push r15
+    89 00000018 53                          push rbx
+    90 00000019 9C                          pushf
+    91 0000001A 6A00                        push qword 0
+    92                                  
+    93                                  ;prompt user input for last name
+    94 0000001C 6A00                        push qword 0
+    95 0000001E B800000000                  mov rax, 0
+    96 00000023 48BF-                       mov rdi, string_format
+    96 00000025 [8E01000000000000] 
+    97 0000002D 48BE-                       mov rsi, input_name_prompt
+    97 0000002F [0000000000000000] 
+    98 00000037 E8(00000000)                call printf
+    99 0000003C 58                          pop rax
+   100                                  
+   101                                  ;input last name
+   102 0000003D 6A00                        push qword 0
+   103 0000003F B800000000                  mov rax, 0
+   104 00000044 48BF-                       mov rdi, lastname
+   104 00000046 [0000000000000000] 
+   105 0000004E 48BE-                       mov rsi, buffer
+   105 00000050 [0002000000000000] 
+   106 00000058 488B1425[00000000]          mov rdx, [stdin]
+   107 00000060 E8(00000000)                call fgets
+   108                                      
+   109                                  ;remove newline char
+   110 00000065 B800000000                  mov rax, 0
+   111 0000006A 48BF-                       mov rdi, lastname
+   111 0000006C [0000000000000000] 
+   112 00000074 E8(00000000)                call strlen
+   113 00000079 C680[FFFFFFFF]00            mov byte [lastname + rax - 1], 0
+   114 00000080 58                          pop rax
+   115                                  
+   116                                  ;prompt user input for title
+   117 00000081 6A00                        push qword 0
+   118 00000083 B800000000                  mov rax, 0
+   119 00000088 48BF-                       mov rdi, string_format
+   119 0000008A [8E01000000000000] 
+   120 00000092 48BE-                       mov rsi, input_title_prompt
+   120 00000094 [1E00000000000000] 
+   121 0000009C E8(00000000)                call printf
+   122 000000A1 58                          pop rax
+   123                                  
+   124                                  ;input title
+   125 000000A2 6A00                        push qword 0
+   126 000000A4 B800000000                  mov rax, 0
+   127 000000A9 48BF-                       mov rdi, title
+   127 000000AB [0001000000000000] 
+   128 000000B3 48BE-                       mov rsi, buffer
+   128 000000B5 [0002000000000000] 
+   129 000000BD 488B1425[00000000]          mov rdx, [stdin]
+   130 000000C5 E8(00000000)                call fgets
+   131                                  
+   132                                  ;remove newline char
+   133 000000CA B800000000                  mov rax, 0
+   134 000000CF 48BF-                       mov rdi, title
+   134 000000D1 [0001000000000000] 
+   135 000000D9 E8(00000000)                call strlen
+   136 000000DE C680[FF000000]00            mov byte [title + rax - 1], 0
+   137 000000E5 58                          pop rax
+   138                                  
+   139                                  ;prompt user input for 2 sides
+   140 000000E6 6A00                        push qword 0
+   141 000000E8 B800000000                  mov rax, 0
+   142 000000ED 48BF-                       mov rdi, string_format
+   142 000000EF [8E01000000000000] 
+   143 000000F7 48BE-                       mov rsi, input_triangle_sides
+   143 000000F9 [5700000000000000] 
+   144 00000101 E8(00000000)                call printf
+   145 00000106 58                          pop rax
+   146                                  
+   147                                  ;input two sides
+   148                                  input:
+   149 00000107 6A00                        push qword 0
+   150 00000109 4881EC00080000              sub rsp, 2048
+   151 00000110 B800000000                  mov rax, 0
+   152 00000115 48BF-                       mov rdi, double_string_format
+   152 00000117 [9801000000000000] 
+   153 0000011F 4889E6                      mov rsi, rsp
+   154 00000122 4889E2                      mov rdx, rsp
+   155 00000125 4881C200040000              add rdx, 1024
+   156 0000012C E8(00000000)                call scanf
+   157                                  
+   158                                      ;check if inputs are floats
+   159 00000131 B800000000                  mov rax, 0
+   160 00000136 4889E7                      mov rdi, rsp
+   161 00000139 E8(00000000)                call isfloat
+   162 0000013E 4883F800                    cmp rax, 0
+   163 00000142 0F846B010000                je error_string
+   164                                  
+   165 00000148 B800000000                  mov rax, 0
+   166 0000014D 4889E7                      mov rdi, rsp
+   167 00000150 4881C700040000              add rdi, 1024
+   168 00000157 E8(00000000)                call isfloat
+   169 0000015C 4883F800                    cmp rax, 0
+   170 00000160 0F844D010000                je error_string
+   171                                  
+   172                                      ;convert inputs to floats and store them in xmm registers
+   173 00000166 4889E7                      mov rdi, rsp
+   174 00000169 E8(00000000)                call atof
+   175 0000016E F2440F10F8                  movsd xmm15, xmm0
+   176                                  
+   177 00000173 4889E7                      mov rdi, rsp
+   178 00000176 4881C700040000              add rdi, 1024
+   179 0000017D E8(00000000)                call atof
+   180 00000182 F2440F10F0                  movsd xmm14, xmm0
+   181                                      
+   182                                      ;compares if inputs are greater than zero
+   183 00000187 F2440F100C25-               movsd xmm9, [zero]
+   183 0000018D [A1010000]         
+   184 00000191 66450F2EF9                  ucomisd xmm15, xmm9
+   185 00000196 0F8642010000                jbe error_number
+   186 0000019C 66450F2EF1                  ucomisd xmm14, xmm9
+   187 000001A1 0F8637010000                jbe error_number
+   188                                  
+   189 000001A7 58                          pop rax
+   190 000001A8 EB00                        jmp calculate
+   191                                  
+   192                                  ;Calculate hypotenuse
+   193                                  calculate:
+   194 000001AA F2450F10E7                  movsd xmm12, xmm15
+   195 000001AF F2450F10EE                  movsd xmm13, xmm14
+   196                                  
+   197                                      ;square inputs
+   198 000001B4 F2450F59E4                  mulsd xmm12, xmm12
+   199 000001B9 F2450F59ED                  mulsd xmm13, xmm13
+   200                                  
+   201 000001BE 6A00                        push qword 0
+   202 000001C0 B802000000                  mov rax, 2
+   203 000001C5 48BF-                       mov rdi, squaring
+   203 000001C7 [4F01000000000000] 
+   204 000001CF F2410F10C4                  movsd xmm0, xmm12
+   205 000001D4 F2410F10CD                  movsd xmm1, xmm13
+   206 000001D9 E8(00000000)                call printf
+   207 000001DE 58                          pop rax
+   208                                  
+   209                                      ;add inputs together
+   210 000001DF F2450F58DC                  addsd xmm11, xmm12
+   211 000001E4 F2450F58DD                  addsd xmm11, xmm13
+   212                                  
+   213 000001E9 6A00                        push qword 0
+   214 000001EB B801000000                  mov rax, 1
+   215 000001F0 48BF-                       mov rdi, adding
+   215 000001F2 [6601000000000000] 
+   216 000001FA F2410F10C3                  movsd xmm0, xmm11
+   217 000001FF E8(00000000)                call printf
+   218 00000204 58                          pop rax
+   219                                  
+   220                                      ;square root total
+   221 00000205 F2450F51D3                  sqrtsd xmm10, xmm11
+   222                                  
+   223 0000020A 6A00                        push qword 0
+   224 0000020C B801000000                  mov rax, 1
+   225 00000211 48BF-                       mov rdi, squarerooting
+   225 00000213 [7601000000000000] 
+   226 0000021B F2410F10C2                  movsd xmm0, xmm10
+   227 00000220 E8(00000000)                call printf
+   228 00000225 58                          pop rax
+   229                                  
+   230                                  ;print length of hypotenuse
+   231 00000226 6A00                        push qword 0
+   232 00000228 B801000000                  mov rax, 1
+   233 0000022D 48BF-                       mov rdi, output_hypotenuse
+   233 0000022F [9200000000000000] 
+   234 00000237 F2410F10C2                  movsd xmm0, xmm10
+   235 0000023C E8(00000000)                call printf
+   236 00000241 58                          pop rax
+   237                                  
+   238                                  ;calculate area
+   239 00000242 BB00000000                  mov rbx, 0
+   240 00000247 F2480F2AFB                  cvtsi2sd xmm7, rbx
+   241 0000024C F2410F58FF                  addsd xmm7, xmm15
+   242 00000251 F2410F59FE                  mulsd xmm7, xmm14
+   243 00000256 B902000000                  mov rcx, 2
+   244 0000025B F24C0F2AC1                  cvtsi2sd xmm8, rcx
+   245 00000260 F2410F5EF8                  divsd xmm7, xmm8
+   246                                  
+   247                                  ;print area
+   248 00000265 6A00                        push qword 0
+   249 00000267 B801000000                  mov rax, 1
+   250 0000026C 48BF-                       mov rdi, output_area
+   250 0000026E [BE00000000000000] 
+   251 00000276 F20F10C7                    movsd xmm0, xmm7
+   252 0000027A E8(00000000)                call printf
+   253 0000027F 58                          pop rax
+   254                                  
+   255                                  ;return numbers and end program
+   256 00000280 6A00                        push qword 0
+   257 00000282 B800000000                  mov rax, 0
+   258 00000287 48BF-                       mov rdi, output_goodbye
+   258 00000289 [EF00000000000000] 
+   259 00000291 48BE-                       mov rsi, title
+   259 00000293 [0001000000000000] 
+   260 0000029B 48BA-                       mov rdx, lastname
+   260 0000029D [0000000000000000] 
+   261 000002A5 E8(00000000)                call printf
+   262 000002AA 58                          pop rax
+   263                                      
+   264 000002AB F2410F10C2                  movsd xmm0, xmm10
+   265 000002B0 58                          pop rax
+   266 000002B1 EB56                        jmp restore_gpr_reg
+   267                                  
+   268                                  ;if any inputs are strings, re-enter values
+   269                                  error_string:
+   270 000002B3 B800000000                  mov rax, 0
+   271 000002B8 48BF-                       mov rdi, string_format
+   271 000002BA [8E01000000000000] 
+   272 000002C2 48BE-                       mov rsi, error_message1
+   272 000002C4 [1301000000000000] 
+   273 000002CC E8(00000000)                call printf
+   274 000002D1 58                          pop rax
+   275                                  
+   276 000002D2 4881C400080000              add rsp, 2048
+   277 000002D9 E929FEFFFF                  jmp input
+   278                                  
+   279                                  ;if any inputs are less than or equal to 0, re-enter values
+   280                                  error_number:
+   281 000002DE B800000000                  mov rax, 0
+   282 000002E3 48BF-                       mov rdi, string_format
+   282 000002E5 [8E01000000000000] 
+   283 000002ED 48BE-                       mov rsi, error_message2
+   283 000002EF [2901000000000000] 
+   284 000002F7 E8(00000000)                call printf
+   285 000002FC 58                          pop rax
+   286                                  
+   287 000002FD 4881C400080000              add rsp, 2048
+   288 00000304 E9FEFDFFFF                  jmp input
+   289                                  
+   290                                  ;restores original values to gpr registers
+   291                                  restore_gpr_reg:
+   292 00000309 4881C400080000              add rsp, 2048
+   293                                  
+   294 00000310 9D                          popf
+   295 00000311 5B                          pop rbx
+   296 00000312 415F                        pop r15
+   297 00000314 415E                        pop r14
+   298 00000316 415D                        pop r13
+   299 00000318 415C                        pop r12
+   300 0000031A 415B                        pop r11
+   301 0000031C 415A                        pop r10
+   302 0000031E 4159                        pop r9
+   303 00000320 4158                        pop r8
+   304 00000322 59                          pop rcx
+   305 00000323 5A                          pop rdx
+   306 00000324 5E                          pop rsi
+   307 00000325 5F                          pop rdi
+   308 00000326 5D                          pop rbp
+   309                                  
+   310 00000327 C3                          ret
