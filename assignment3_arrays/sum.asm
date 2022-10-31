@@ -7,9 +7,9 @@
 ;
 ;Program Name: Integer Array
 ;Programming Languages: C, C++, X86
-;Date of Last Update: 26 September, 2022
-;Date of Reorganization of Comments: 26 September, 2022
-;Files in this Program: main.c, manager.asm, input_array.asm, sum.asm, display_array.cpp, run.sh
+;Date of Last Update: 31 October, 2022
+;Date of Reorganization of Comments: 31 October, 2022
+;Files in this Program: main.c, manager.asm, input_array.asm, sum.asm, atol.asm, display_array.cpp, isinteger.cpp, run.sh
 ;Status: Finished. The program was tested with no errors on WSL Ubuntu 20.04.4 LTS. 
 ;
 ;Program Description: This program will allow a user to input integers in an array of size 6. The program will input and validate
@@ -73,7 +73,6 @@ sum:
 ;create space for sum
     mov rdx, 0
     mov r8, rdx
-    ;cvtsi2sd xmm15, rdx
 
 ;start loop
     mov r13, 0
@@ -81,14 +80,12 @@ beginOfLoop:
     cmp r13, r14
     je outOfLoop
     add r8, [r15 + 8*r13]
-    ;addsd xmm15, [r15 + 8*r13]
     inc r13
     jmp beginOfLoop
 
 outOfLoop:
     pop rax
     mov rax, r8
-    ;movsd xmm0, xmm15
     jmp restore_gpr_reg
 
 restore_gpr_reg:

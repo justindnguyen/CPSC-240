@@ -1,3 +1,11 @@
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++;
+;This function was used as part of a larger program by ;
+; Author: Justin Nguyen                                ;
+; Contact:  justindnguyen03y@csu.fullerton.edu         ;
+; Program:  Integer Array                              ;
+; Date incorporated:  September 19th, 2022             ;
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++;
+
 ;****************************************************************************************************************************
 ;Program name: "String to Long Integer Conversion".  This program demonstrates the use of the library function atolong,     *
 ;which converts a well-formed character array to a long integer.  Copyright (C) 2020 Floyd Holliday                         *

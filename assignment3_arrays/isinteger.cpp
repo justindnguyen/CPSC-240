@@ -1,3 +1,11 @@
+/*;++++++++++++++++++++++++++++++++++++++++++++++++++++++;
+//;This function was used as part of a larger program by ;
+//; Author: Justin Nguyen                                ;
+//; Contact:  justindnguyen03y@csu.fullerton.edu         ;
+//; Program:  Integer Array                              ;
+//; Date incorporated:  September 19th, 2022             ;
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++;*/
+
 //***************************************************************************************************************************
 //Program name: "Validate Integer Input".  This program demonstrates how to validate input received from scanf as valid      *
 //integer data.  Copyright (C) 2020 Floyd Holliday                                                                           *
