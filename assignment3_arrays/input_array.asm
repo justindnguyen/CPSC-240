@@ -42,10 +42,6 @@ global input_array
 
 segment .data
     ;defining variables
-    prompt1 db "Enter a sequence of long integers separated by white space.", 10, 0
-    prompt2 db "After the last input, press enter followed by Control+D: ", 10, 0
-    error db "Error ommitted from the array.", 10, 0
-    one_float_format db "%lf", 0
     string_format db "%s", 0
 
 segment .bss
@@ -75,44 +71,25 @@ input_array:
     push qword 0
 
 ;store array
-    mov r14, rdi   
+    mov r15, rdi   
 ;store array size
-    mov r13, rsi
-
-;print prompt1
-    push qword 0
-    mov rax, 0
-    mov rdi, string_format
-    mov rsi, prompt1
-    call printf
-    pop rax
-
-;print prompt2
-    push qword 0
-    mov rax, 0
-    mov rdi, string_format
-    mov rsi, prompt2    
-    call printf
-    pop rax
-
+    mov r14, rsi
 ;begin loop counter
-    mov r12, 0
+    mov r13, 0
 
 beginOfLoop:
-    cmp r12, r13
+    cmp r13, r14
     je outOfLoop
 
-    cdqe
-    cmp rax, -1
-    je outOfLoop
-
-    push qword 0
     mov rax, 0
     mov rdi, string_format
     mov rsi, rsp
     call scanf
 
-validateInput:
+    cdqe
+    cmp rax, -1
+    je outOfLoop
+
     mov rax, 0
     mov rdi, rsp
     call isinteger
@@ -123,32 +100,25 @@ validateInput:
     mov rdi, rsp
     call atolong
     mov r11, rax
-    pop r8
 
-    mov [r14 + 8 * r12], r11
-    inc r12
+    mov [r15 + 8 * r13], r11
+    inc r13
+
+    cmp r13, r14
+    je outOfLoop
 
     jmp beginOfLoop
 
 error_long:
-    push qword 0
-    mov rax, 0
-    mov rdi, string_format
-    mov rsi, error
-    call printf
-    pop rax
-
-    pop r8
     jmp beginOfLoop
 
 outOfLoop:
     pop rax
-    mov rax, r12
+    mov rax, r13
     jmp restore_gpr_reg
 
 restore_gpr_reg:
     ;restores original values to gpr registers
-
     popf
     pop rbx
     pop r15

@@ -40,9 +40,6 @@ extern "C" void display_array(long arr[], long arr_size);
 void display_array(long arr[], long arr_size) {
   for (int i = 0; i < arr_size; i++)
   {
-    if(arr[i] != 0)
-    {
-      printf("%ld\t", arr[i]);
-    }
+    printf("%ld\t", arr[i]);
   }
 }

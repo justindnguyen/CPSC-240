@@ -40,9 +40,10 @@ extern strlen
 extern display_array
 extern sum
 extern input_array
-extern array_count
 
 global manager
+
+array_size equ 6
 
 segment .data
     ;defining variables
@@ -51,6 +52,8 @@ segment .data
     output_array db 10, "These numbers were received and placed into the array:", 10, 0
     output_sum db 10, 10, "The sum of the %ld numbers in this array is %ld.", 10, 0
     return_prompt db 10, "This program will return execution to the main function.", 10, 10, 0
+    prompt1 db "Enter a sequence of long integers separated by white space.", 10, 0
+    prompt2 db "After the last input, press enter followed by Control+D: ", 10, 0
     string_format db "%s", 0
     double_float_format db "%lf%lf", 0
     double_string_format db "%s%s", 0
@@ -60,7 +63,7 @@ segment .bss
     ;reserved for uninitialized data
     name: resb 256
     buffer: resb 256
-    int_array: resq 6
+    int_array: resq array_size
 
 segment .text
     ;reserved for executing instructions
@@ -116,22 +119,28 @@ manager:
     call printf
     pop rax
 
-;call input_array
+;print prompt1
     push qword 0
     mov rax, 0
-    mov rdi, int_array
-    mov rsi, 6
-    call input_array
-    mov r15, rax
+    mov rdi, string_format
+    mov rsi, prompt1
+    call printf
     pop rax
 
-;call array_count
+;print prompt2
     push qword 0
     mov rax, 0
+    mov rdi, string_format
+    mov rsi, prompt2    
+    call printf
+    pop rax
+
+;call input_array
+    mov rax, 0
     mov rdi, int_array
-    mov rsi, r15
-    call array_count
-    mov r14, rax
+    mov rsi, array_size
+    call input_array
+    mov r15, rax
     pop rax
 
 ;print array values - "These numbers were received and placed into the array:"
@@ -143,7 +152,6 @@ manager:
     pop rax
 
 ;call display_array
-    push qword 0
     mov rax, 0
     mov rdi, int_array
     mov rsi, r15
@@ -164,7 +172,7 @@ manager:
     push qword 0
     mov rax, 2
     mov rdi, output_sum
-    mov rsi, r14
+    mov rsi, r15
     mov rdx, r8
     ;movsd xmm0, xmm15
     call printf
@@ -176,10 +184,8 @@ manager:
     mov rdi, string_format
     mov rsi, return_prompt
     call printf
-    pop rax
 
 ;return name
-    pop rax
     mov rax, name
 
 restore_gpr_reg:
